@@ -1,0 +1,4 @@
+*.cbp
+*.elf
+*.gba
+build/
