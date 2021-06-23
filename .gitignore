@@ -1,4 +1,5 @@
 *.cbp
 *.elf
 *.gba
+*.layout
 build/
