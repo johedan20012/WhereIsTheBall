@@ -4,6 +4,7 @@
 #define KEY_MASK 0x03FF
 
 #include <gba_types.h>
+#include <gba_input.h>
 
 class InputManager{
     private:

@@ -24,6 +24,7 @@ TARGET		:= $(notdir $(CURDIR))
 BUILD		:= build
 SOURCES		:= source
 INCLUDES	:= include
+GRAPHICS	:= graphics
 DATA		:=
 MUSIC		:=
 
@@ -38,7 +39,7 @@ CFLAGS	:=	-g -Wall -O2\
 
 CFLAGS	+=	$(INCLUDE)
 
-CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
+CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
@@ -76,6 +77,7 @@ CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
 ifneq ($(strip $(MUSIC)),)
 	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
@@ -96,7 +98,7 @@ else
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES_BIN := $(addsuffix .o,$(BINFILES))
+export OFILES_BIN := $(addsuffix .o,$(BINFILES)) $(PNGFILES:.png=.o)
 
 export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
@@ -147,6 +149,13 @@ $(OFILES_SOURCES) : $(HFILES)
 soundbank.bin soundbank.h : $(AUDIOFILES)
 #---------------------------------------------------------------------------------
 	@mmutil $^ -osoundbank.bin -hsoundbank.h
+	
+#---------------------------------------------------------------------------------
+# Usa grit para convertir las imagenes png a .h y .s
+#---------------------------------------------------------------------------------
+%.s %.h	: %.png %.grit
+#---------------------------------------------------------------------------------
+	grit $< -fts -o$*
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .bin extension

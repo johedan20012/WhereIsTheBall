@@ -3,11 +3,13 @@
 
 #include "InputManager.h"
 #include "ScreenManager.h"
+#include "OAMManager.h"
 
 class Game{
     private:
         ScreenManager* screenManager;
         InputManager* inputManager;
+        OAMManager* oamManager;
 
     public:
         Game();

@@ -1,7 +1,7 @@
 #ifndef SCREENMANAGER_H
 #define SCREENMANAGER_H
 
-#include "Screen.h"
+#include "StartScreen.h"
 
 class ScreenManager{
     private:

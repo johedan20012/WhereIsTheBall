@@ -3,7 +3,7 @@
 ScreenManager* ScreenManager::instance = nullptr;
 
 ScreenManager::ScreenManager()
-    :currentScreen(nullptr){}
+    :currentScreen(new StartScreen()){}
 
 ScreenManager::~ScreenManager(){}
 
@@ -22,7 +22,7 @@ void ScreenManager::release(){
 }
 
 void ScreenManager::update(){
-
+    currentScreen->update();
 }
 
 void ScreenManager::setScreen(ScreenType screenType){
