@@ -12,8 +12,13 @@
 struct TILE8{
     u32 data[16];
 };
+struct TILE4{
+    u32 data[8];
+};
 typedef TILE8 CHARBLOCK8[256];
+typedef TILE4 CHARBLOCK4[512];
 #define TILE8_MEMORY ((CHARBLOCK8*)VRAM)
+#define TILE4_MEMORY ((CHARBLOCK4*)VRAM)
 
 typedef u16 SCRBLOCK_ENTRY;
 typedef SCRBLOCK_ENTRY SCREENBLOCK[1024];

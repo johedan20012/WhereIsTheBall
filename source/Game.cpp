@@ -4,13 +4,26 @@
 #include <gba_interrupt.h>
 #include <gba_systemcalls.h>
 
+#include <string.h>
+
+///Bg images
+#include "ImgGameBG.h"
+
+///BG palette
 Game::Game(){
     /// (MODE_0) Set video mode to mode 0, 4 backgrounds with no rotation or scaling
     /// (OBJ_1D_MAP) Set object mapping mode to 1D
-    REG_DISPCNT = MODE_0 | OBJ_1D_MAP | BG0_ENABLE | OBJ_ENABLE;
+    REG_DISPCNT = MODE_0 | OBJ_1D_MAP | BG0_ENABLE | BG1_ENABLE | OBJ_ENABLE;
 
-    /// Set max priority to BG 0, Character block to 1, 256 colors/ 1 palette, Screeen block base to 0, and size 256x256 px (32x32 tiles)
-    REG_BG0CNT = BG_PRIORITY(0) | CHAR_BASE(1) | BG_256_COLOR | SCREEN_BASE(0) | BG_SIZE_0;
+    /// Set priority to 1, Character block to 1, 16 colors/ 16 palettes, Screeen block base to 0, and size 256x256 px (32x32 tiles)
+    REG_BG1CNT = BG_PRIORITY(1) | CHAR_BASE(2) | BG_16_COLOR | SCREEN_BASE(4) | BG_SIZE_0;
+
+    ///Copy image palette, tile data and map
+    memcpy(&BGPAL_MEMORY[0], ImgGameBGPal, ImgGameBGPalLen);
+
+    memcpy(&TILE8_MEMORY[2][0], ImgGameBGTiles, ImgGameBGTilesLen);
+
+    memcpy(&SCRBLOCK_MEMORY[4][0], ImgGameBGMap, ImgGameBGMapLen);
 
     /// Enable interrupts
     irqInit();

@@ -2,7 +2,13 @@
 -W3
 
 # Bith depth set to 8
--gB8
+-gB4
 
-# Enable tile reduction: tiles, pal and flipped.
+# Enable tile reduction: tiles, palette and flipped.
 -mRtpf
+
+# Set transparency color to blue
+-gT0021FF
+
+# Set palette bank to 0
+-mp 1

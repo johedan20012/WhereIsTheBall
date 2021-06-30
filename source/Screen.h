@@ -2,7 +2,7 @@
 #define SCREEN_H
 
 enum class ScreenType{
-    START_SCREEN,
+    START_SCREEN = 0,
     PLAY_SCREEN
 };
 
@@ -12,6 +12,7 @@ class Screen{
 
     public:
         Screen(ScreenType type);
+        virtual ~Screen();
 
         ScreenType getType();
 

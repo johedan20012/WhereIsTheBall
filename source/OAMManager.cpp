@@ -30,14 +30,10 @@ OBJ_ATTR* OAMManager::getAttrPtr(u32 index){
 }
 
 void OAMManager::copyBuffer(u32 noObjects){
-    /*for(u32 i = 0; i<noObjects; i++){
-        OBJ_ATTR_MEMORY[i] = objBuffer[i];
-    }*/
     u32* oamMemory = (u32*) OBJ_ATTR_MEMORY;
     u32* objBuf = (u32*) objBuffer;
     while(noObjects--){
         *oamMemory++ = *objBuf++;
         *oamMemory++ = *objBuf++;
     }
-    ///NOTE: if this generates problems use word-copy instead
 }

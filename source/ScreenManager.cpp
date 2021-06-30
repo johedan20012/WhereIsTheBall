@@ -1,5 +1,8 @@
 #include "ScreenManager.h"
 
+#include "PlayScreen.h"
+#include "StartScreen.h"
+
 ScreenManager* ScreenManager::instance = nullptr;
 
 ScreenManager::ScreenManager()
@@ -26,5 +29,10 @@ void ScreenManager::update(){
 }
 
 void ScreenManager::setScreen(ScreenType screenType){
-
+    delete currentScreen;
+    if(screenType == ScreenType::START_SCREEN){
+        currentScreen = new StartScreen();
+        return;
+    }
+    currentScreen = new PlayScreen();
 }

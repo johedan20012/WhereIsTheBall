@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-#include "InputManager.h"
+#include "ScreenManager.h"
 #include "ObjectAtributes.h"
 
 ///Backgrounds
@@ -14,12 +14,18 @@
 StartScreen::StartScreen()
     : Screen(ScreenType::START_SCREEN), optionSelected(0){
 
+    REG_DISPCNT |= BG0_ON;
+
+    REG_BG0CNT = BG_PRIORITY(0) | CHAR_BASE(1) | BG_16_COLOR | SCREEN_BASE(0) | BG_SIZE_0;
+
     ///Copy image palette, tile data and map
-    memcpy(&BGPAL_MEMORY[0], ImgStartScreenPal, ImgStartScreenPalLen);
+    memcpy(&BGPAL_MEMORY[16], ImgStartScreenPal, ImgStartScreenPalLen);
 
     memcpy(&TILE8_MEMORY[1][0], ImgStartScreenTiles, ImgStartScreenTilesLen);
 
     memcpy(&SCRBLOCK_MEMORY[0][0], ImgStartScreenMap, ImgStartScreenMapLen);
+
+    inputManager = InputManager::getInstance();
 
     ///Get oamManager instance
     oamManager = OAMManager::getInstance();
@@ -34,17 +40,20 @@ StartScreen::StartScreen()
 
     cursorAttr->attr0 = ATTR0_YPOS(62) | ATTR0_REG | ATTR0_8BPP | ATTR0_SQUARE;
     cursorAttr->attr1 = ATTR1_XPOS(81) | ATTR1_SIZE(1);
-    cursorAttr->attr2 = ATTR2_BASE_TILE(0) | ATTR2_PIORITY(0);
+    cursorAttr->attr2 = ATTR2_BASE_TILE(0) | ATTR2_PRIORITY(0);
 
     oamManager->copyBuffer(1);
 }
 
 void StartScreen::update(){
-    if(InputManager::getInstance()->keyWentDown(KEY_DOWN)){
+    if(inputManager->keyWentDown(KEY_DOWN)){
         optionSelected = 1;
     }
-    if(InputManager::getInstance()->keyWentDown(KEY_UP)){
+    if(inputManager->keyWentDown(KEY_UP)){
         optionSelected = 0;
+    }
+    if(inputManager->keyWentDown(KEY_A)){
+        ScreenManager::getInstance()->setScreen((ScreenType)(optionSelected+1));
     }
 
     cursorAttr->attr0 &= ~ATTR0_YPOS_MASK;
