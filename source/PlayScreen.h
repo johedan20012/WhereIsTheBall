@@ -5,6 +5,7 @@
 #include "OAMManager.h"
 #include "InputManager.h"
 #include "ObjectAtributes.h"
+#include "TextSystem.h"
 
 enum class PlayState{
     BET = 0,
@@ -21,6 +22,8 @@ enum class PlayScreenState{
 
 class PlayScreen : public Screen{
     private:
+        static u32 toncfontTiles[192];
+
         PlayScreenState scrState;
         PlayState playState;
 
@@ -30,6 +33,8 @@ class PlayScreen : public Screen{
         u32 ballPos; /// Index of what cup the ball is
 
         u32 coins;
+
+        TextSystem* textLayer;
 
         OAMManager* oamManager;
         InputManager* inputManager;

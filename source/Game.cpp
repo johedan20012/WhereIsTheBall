@@ -15,15 +15,13 @@ Game::Game(){
     /// (OBJ_1D_MAP) Set object mapping mode to 1D
     REG_DISPCNT = MODE_0 | OBJ_1D_MAP | BG0_ENABLE | BG1_ENABLE | OBJ_ENABLE;
 
-    /// Set priority to 1, Character block to 1, 16 colors/ 16 palettes, Screeen block base to 0, and size 256x256 px (32x32 tiles)
-    REG_BG1CNT = BG_PRIORITY(1) | CHAR_BASE(2) | BG_16_COLOR | SCREEN_BASE(4) | BG_SIZE_0;
+    /// Set priority to 3, Character block to 1, 16 colors/ 16 palettes, Screeen block base to 0, and size 256x256 px (32x32 tiles)
+    REG_BG0CNT = BG_PRIORITY(3) | CHAR_BASE(1) | BG_16_COLOR | SCREEN_BASE(0) | BG_SIZE_0;
 
-    ///Copy image palette, tile data and map
+    ///Copy image palette, tile data and map of the game background
     memcpy(&BGPAL_MEMORY[0], ImgGameBGPal, ImgGameBGPalLen);
-
-    memcpy(&TILE8_MEMORY[2][0], ImgGameBGTiles, ImgGameBGTilesLen);
-
-    memcpy(&SCRBLOCK_MEMORY[4][0], ImgGameBGMap, ImgGameBGMapLen);
+    memcpy(&TILE8_MEMORY[1][0], ImgGameBGTiles, ImgGameBGTilesLen);
+    memcpy(&SCRBLOCK_MEMORY[0][0], ImgGameBGMap, ImgGameBGMapLen);
 
     /// Enable interrupts
     irqInit();

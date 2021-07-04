@@ -14,16 +14,14 @@
 StartScreen::StartScreen()
     : Screen(ScreenType::START_SCREEN), optionSelected(0){
 
-    REG_DISPCNT |= BG0_ON;
+    REG_DISPCNT |= BG1_ON;
 
-    REG_BG0CNT = BG_PRIORITY(0) | CHAR_BASE(1) | BG_16_COLOR | SCREEN_BASE(0) | BG_SIZE_0;
+    REG_BG1CNT = BG_PRIORITY(0) | CHAR_BASE(2) | BG_16_COLOR | SCREEN_BASE(1) | BG_SIZE_0;
 
     ///Copy image palette, tile data and map
     memcpy(&BGPAL_MEMORY[16], ImgStartScreenPal, ImgStartScreenPalLen);
-
-    memcpy(&TILE8_MEMORY[1][0], ImgStartScreenTiles, ImgStartScreenTilesLen);
-
-    memcpy(&SCRBLOCK_MEMORY[0][0], ImgStartScreenMap, ImgStartScreenMapLen);
+    memcpy(&TILE8_MEMORY[2][0], ImgStartScreenTiles, ImgStartScreenTilesLen);
+    memcpy(&SCRBLOCK_MEMORY[1][0], ImgStartScreenMap, ImgStartScreenMapLen);
 
     inputManager = InputManager::getInstance();
 
