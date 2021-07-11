@@ -29,10 +29,21 @@ class PlayScreen : public Screen{
 
         OBJ_ATTR* cupsAttr[5];
         OBJ_ATTR* ballAttr;
+        OBJ_ATTR* cursorAttr;
 
         u32 ballPos; /// Index of what cup the ball is
 
         u32 coins;
+        u32 highscore;
+        u32 multiplier;
+        u32 bet;
+        u32 minimumBet;
+        u32 level;
+        u32 winnedCoins;
+
+        int addBet;
+
+        u32 pOpSelected;
 
         TextSystem* textLayer;
 
@@ -46,7 +57,12 @@ class PlayScreen : public Screen{
         void update() override;
 
     private:
-        void handleInput();
+
+        void updateCHB(); ///update Coins, High score and Bet values on screen
+
+        void changeBet(int amount); ///Change the current bet by "amount" coins
+
+        void updateMultiplier(); ///Update the number of cups visible and the value of the multiplier onScreen
 };
 
 #endif // PLAYSCREEN_H

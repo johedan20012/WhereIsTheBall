@@ -16,6 +16,9 @@ class TextSystem{
         ~TextSystem();
 
         void puts(int x,int y,const char *str);
+        void puts(int x,int y,u32 number,u32 nDigits);
+
+        void clean(int x,int y,u32 numSpaces);
     private:
         void unpackFont4BPP(void *destination,const void *source,u32 length);
 };

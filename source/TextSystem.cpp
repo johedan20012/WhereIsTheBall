@@ -19,6 +19,13 @@ TextSystem::TextSystem(u32 screenBlock,u32 charBlock,u32 *font,u32 fontLength)
 
     for(u32 i=0; i<96; i++)
         characters[i+32]= i;
+
+    ///Clean the map
+    for(u32 x=0; x<30; x++){
+        for(u32 y=0; y<20; y++){
+            se0[y*32+x] = characters[' '];
+        }
+    }
 }
 
 TextSystem::~TextSystem(){
@@ -38,6 +45,30 @@ void TextSystem::puts(int x,int y,const char *str){
         }else{
             dst[x++] = characters[c] | 0x3000; ///Set to palette number 3
         }
+    }
+}
+
+void TextSystem::puts(int x,int y,u32 number,u32 nDigits){
+    int digit;
+    SCRBLOCK_ENTRY *dst = &se0[y*32+x];
+    x = nDigits-1;
+    do{
+        digit = number % 10;
+        number /= 10;
+        dst[x--] = characters['0'+digit] | 0x3000;
+    }while(nDigits-- && number !=0);
+    while(nDigits--){
+        dst[x--] = 0;
+    }
+}
+
+void TextSystem::clean(int x,int y,u32 numSpaces){
+    int c;
+    SCRBLOCK_ENTRY *dst= &se0[y*32+x];
+
+    x=0;
+    while(numSpaces--){
+        dst[x++] = characters[' '] | 0x3000; ///Set to palette number 3
     }
 }
 

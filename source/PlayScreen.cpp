@@ -9,11 +9,14 @@
 ///Sprites
 #include "SprCup.h"
 #include "SprBall.h"
+#include "SprCursorPause.h"
 
 PlayScreen::PlayScreen()
-    :Screen(ScreenType::PLAY_SCREEN),scrState(PlayScreenState::PLAYING),playState(PlayState::BET),coins(0){
+    :Screen(ScreenType::PLAY_SCREEN),scrState(PlayScreenState::PLAYING),playState(PlayState::BET)
+    ,coins(1000),highscore(200000),multiplier(2),bet(1),minimumBet(1),level(1),pOpSelected(0){
 
     REG_DISPCNT ^= BG1_ON;
+    REG_DISPCNT |= BG2_ON;
 
     inputManager = InputManager::getInstance();
 
@@ -27,32 +30,44 @@ PlayScreen::PlayScreen()
     memcpy(&OBJPAL_MEMORY[16],SprBallPal,SprBallPalLen);
     memcpy(&TILE4_MEMORY[4][32], SprBallTiles,SprBallTilesLen);
 
+    memcpy(&OBJPAL_MEMORY[32],SprCursorPausePal,SprCursorPausePalLen);
+    memcpy(&TILE4_MEMORY[4][36],SprCursorPauseTiles,SprCursorPauseTilesLen);
+
     ///Set cups sprite attributes
     for(u32 i = 0; i<5; i++){
         cupsAttr[i] = oamManager->getAttrPtr(i);
-        cupsAttr[i]->attr0 = ATTR0_YPOS(62) | ATTR0_REG | ATTR0_4BPP | ATTR0_TALL;
+        cupsAttr[i]->attr0 = ATTR0_YPOS(62) | ((i>0 && i<4)? ATTR0_REG:ATTR0_HIDE) | ATTR0_4BPP | ATTR0_TALL;
         cupsAttr[i]->attr1 = ATTR1_XPOS(30+i*36) | ATTR1_SIZE(3);
         cupsAttr[i]->attr2 = ATTR2_BASE_TILE(0) | ATTR2_PRIORITY(1);
     }
 
     ///Set ball sprite attributes
     ballAttr = oamManager->getAttrPtr(5);
-    ballAttr->attr0 = ATTR0_YPOS(32) | ATTR0_REG | ATTR0_4BPP | ATTR0_SQUARE;
+    ballAttr->attr0 = ATTR0_YPOS(32) | ATTR0_HIDE | ATTR0_4BPP | ATTR0_SQUARE;
     ballAttr->attr1 = ATTR1_XPOS(32) | ATTR1_SIZE(1);
     ballAttr->attr2 = ATTR2_BASE_TILE(32) | ATTR2_PRIORITY(2) | ATTR2_PALBANK(1);
 
-    textLayer = new TextSystem(2,2,toncfontTiles,sizeof(toncfontTiles));
-    textLayer->puts(3,0,"Multiplier");
-    textLayer->puts(6,1,"x2");
-    textLayer->puts(18,0,"Highscore");
-    textLayer->puts(17,1,"00000000000");
+    ///Set cursor sprite attributes
+    cursorAttr = oamManager->getAttrPtr(6);
+    cursorAttr->attr0 = ATTR0_YPOS(72) | ATTR0_HIDE | ATTR0_4BPP | ATTR0_SQUARE;
+    cursorAttr->attr1 = ATTR1_XPOS(80) | ATTR1_SIZE(0);
+    cursorAttr->attr2 = ATTR2_BASE_TILE(36) | ATTR2_PRIORITY(0) | ATTR2_PALBANK(2);
 
-    textLayer->puts(4,16,"Coins");
-    textLayer->puts(1,17,"00000000000");
-    textLayer->puts(16,16,"Bet");
-    textLayer->puts(13,17,"000000000");
-    textLayer->puts(25,17,"Play");
-    oamManager->copyBuffer(6);
+    textLayer = new TextSystem(2,2,toncfontTiles,sizeof(toncfontTiles));
+    textLayer->puts(1,0,"Multiplier");
+    textLayer->puts(5,1,"x2");
+    textLayer->puts(13,0,"Level");
+    textLayer->puts(20,0,"Highscore");
+
+    textLayer->puts(6,17,"Coins");
+    textLayer->puts(20,17,"Bet");
+
+    inputManager->setKeyRepeat(KeyIndex::KEY_UP,30);
+    inputManager->setKeyRepeat(KeyIndex::KEY_DOWN,30);
+
+    updateCHB();
+
+    oamManager->copyBuffer(7);
 }
 
 PlayScreen::~PlayScreen(){
@@ -61,19 +76,45 @@ PlayScreen::~PlayScreen(){
         cupsAttr[i]->attr0 = ATTR0_HIDE;
     }
     ballAttr->attr0 = ATTR0_HIDE;
-    oamManager->copyBuffer(6);
+    cursorAttr->attr0 = ATTR0_HIDE;
+    oamManager->copyBuffer(7);
+
+    inputManager->setKeyRepeat(KeyIndex::KEY_UP,0);
+    inputManager->setKeyRepeat(KeyIndex::KEY_DOWN,0);
 
     delete textLayer;
     textLayer = nullptr;
 }
 
 void PlayScreen::update(){
-    handleInput();
-
     if(scrState == PlayScreenState::PLAYING){
+        if(inputManager->keyWentDown(KEY_START)){
+            scrState = PlayScreenState::PAUSE;
+            textLayer->puts(10,5,"GAME PAUSED");
+            textLayer->puts(12,9,"Resume");
+            textLayer->puts(12,11,"Quit");
+            BF_SET(cursorAttr->attr0,0,ATTR0_MODE);
+        }
+
         switch(playState){
-            case PlayState::BET:
-                ///Player can select the multiplier and the bet
+            case PlayState::BET: ///Player can select the multiplier and the bet
+                addBet = 0;
+                if(inputManager->keyWentDown(KEY_L))
+                    multiplier--;
+                if(inputManager->keyWentDown(KEY_R))
+                    multiplier++;
+                if(inputManager->keyWentDown(KEY_UP) || inputManager->keyRepeated(KeyIndex::KEY_UP))
+                    addBet++;
+                if(inputManager->keyWentDown(KEY_DOWN) || inputManager->keyRepeated(KeyIndex::KEY_DOWN))
+                    addBet--;
+                if(inputManager->keyWentDown(KEY_A))
+                    playState = PlayState::SHUFFLE;
+
+                changeBet(addBet);
+                updateMultiplier();
+
+                oamManager->copyBuffer(6);
+                updateCHB();
                 break;
             case PlayState::SHUFFLE:
                 ///Bet disable and shuffle of the cups
@@ -83,30 +124,62 @@ void PlayScreen::update(){
                 break;
             case PlayState::PRIZE:
                 ///Ball reveal and prize delivery in case of correct guessing
+                if(coins == 0)
+                    scrState = PlayScreenState::GAMEOVER;
                 break;
         }
+    }else if(scrState == PlayScreenState::PAUSE){
+        if(inputManager->keyWentDown(KEY_UP))
+            pOpSelected = 0;
+        if(inputManager->keyWentDown(KEY_DOWN))
+            pOpSelected = 1;
+        if(inputManager->keyWentDown(KEY_A)){
+            if(pOpSelected)
+                ScreenManager::getInstance()->setScreen(ScreenType::START_SCREEN);
 
-        if(coins == 0){
-            scrState = PlayScreenState::GAMEOVER;
+            scrState = PlayScreenState::PLAYING;
+            textLayer->clean(10,5,11);
+            textLayer->clean(12,9,6);
+            textLayer->clean(12,11,4);
+            BF_SET(cursorAttr->attr0,2,ATTR0_MODE);
         }
+
+        BF_SET(cursorAttr->attr0,72+pOpSelected*16,ATTR0_YPOS);
+
+        oamManager->copyBuffer(7);
+    }else{ ///Gameover state
+        if(inputManager->keyWentDown(KEY_START))
+           ScreenManager::getInstance()->setScreen(ScreenType::START_SCREEN);
     }
 }
 
-void PlayScreen::handleInput(){
-    if(scrState == PlayScreenState::PLAYING){
-        if(inputManager->keyWentDown(KEY_START)){
-            scrState = PlayScreenState::PAUSE;
-            return;
-        }
+void PlayScreen::updateCHB(){
+    textLayer->puts(20,1,highscore,9);
+    textLayer->puts(4,18,coins,9);
+    textLayer->puts(18,18,bet,7);
+    textLayer->puts(15,1,level,2);
+}
 
-
-    }
-
-    if(scrState == PlayScreenState::GAMEOVER && inputManager->keyWentUp(KEY_START)){
-        ScreenManager::getInstance()->setScreen(ScreenType::START_SCREEN);
+void PlayScreen::changeBet(int amount){
+    u32 value = (amount < 0)? amount*-1 : amount;
+    if(amount > 0 && value <= coins){
+        coins -= value;
+        bet += value;
+    }else if(amount <0 && value <= bet){
+        if((bet-value) < minimumBet) return;
+        coins += value;
+        bet -= value;
     }
 }
 
+void PlayScreen::updateMultiplier(){
+    multiplier = (multiplier < 2)? 2 : (multiplier > 4)? 4 : multiplier;
+
+    BF_SET(cupsAttr[0]->attr0,(multiplier == 2)? 2:0,ATTR0_MODE);
+    BF_SET(cupsAttr[4]->attr0,(multiplier == 4)? 0:2,ATTR0_MODE);
+
+    textLayer->puts(6,1,multiplier,1);
+}
 
 ///Tonc font
 u32 PlayScreen::toncfontTiles[192] = {0x00000000, 0x00000000, 0x18181818, 0x00180018, 0x00003636, 0x00000000, 0x367F3636, 0x0036367F,

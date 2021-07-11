@@ -49,6 +49,10 @@ LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 #---------------------------------------------------------------------------------
 LIBS	:= -lmm -lgba
 
+#---------------------------------------------------------------------------------
+# path to tools - this can be deleted if you set the path to the toolchain in windows
+#---------------------------------------------------------------------------------
+export PATH		:=	$(DEVKITARM)/bin:$(PATH)
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

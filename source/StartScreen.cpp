@@ -14,6 +14,7 @@
 StartScreen::StartScreen()
     : Screen(ScreenType::START_SCREEN), optionSelected(0){
 
+    REG_DISPCNT ^= BG2_ON;
     REG_DISPCNT |= BG1_ON;
 
     REG_BG1CNT = BG_PRIORITY(0) | CHAR_BASE(2) | BG_16_COLOR | SCREEN_BASE(1) | BG_SIZE_0;
@@ -50,7 +51,7 @@ void StartScreen::update(){
     if(inputManager->keyWentDown(KEY_UP)){
         optionSelected = 0;
     }
-    if(inputManager->keyWentDown(KEY_A)){
+    if(inputManager->keyWentDown(KEY_START)){
         ScreenManager::getInstance()->setScreen((ScreenType)(optionSelected+1));
     }
 
