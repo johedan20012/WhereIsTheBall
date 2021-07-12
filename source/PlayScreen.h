@@ -1,11 +1,19 @@
 #ifndef PLAYSCREEN_H
 #define PLAYSCREEN_H
 
+#include <queue>
+
 #include "Screen.h"
 #include "OAMManager.h"
 #include "InputManager.h"
 #include "ObjectAtributes.h"
 #include "TextSystem.h"
+#include "Cup.h"
+
+#define SHUFFLE_MODE_MASK   0x80
+#define SHUFFLE_LAYER_MASK  0x40
+#define SHUFFLE_CUP2_MASK   0x38
+#define SHUFFLE_CUP1_MASK   0x7
 
 enum class PlayState{
     BET = 0,
@@ -24,14 +32,26 @@ class PlayScreen : public Screen{
     private:
         static u32 toncfontTiles[192];
 
+        static const int NUM_SPRITES = 8;
+
         PlayScreenState scrState;
         PlayState playState;
 
-        OBJ_ATTR* cupsAttr[5];
+        Cup* cups[5];
         OBJ_ATTR* ballAttr;
         OBJ_ATTR* cursorAttr;
+        OBJ_ATTR* cursorSelectAttr;
 
+        u32 shufflesData[40];
+        u32 shuffles;
+        std::queue<int> cupsNotUsed;
+        u32 actShuffle;
+        u32 cupsMoveFlags;
+        u32 showBall;
         u32 ballPos; /// Index of what cup the ball is
+
+        int curSelectPos;
+        int cupSelected;
 
         u32 coins;
         u32 highscore;
@@ -63,6 +83,15 @@ class PlayScreen : public Screen{
         void changeBet(int amount); ///Change the current bet by "amount" coins
 
         void updateMultiplier(); ///Update the number of cups visible and the value of the multiplier onScreen
+
+        void fillNotUsedCupStack(int cups);
+        int getRandomCup();
+        void generateRandomShuffles(); ///Generates the data for the SHUFFLE play state
+
+        void swapCups(int c1,int c2,int mode);
+        void updateCupsShuffle();
+
+        void updateSelectionCursor();
 };
 
 #endif // PLAYSCREEN_H
