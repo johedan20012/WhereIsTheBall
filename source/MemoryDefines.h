@@ -9,6 +9,9 @@
 
 #define OAM_ADR 0x7000000
 
+#define GAMEPAK_SRAM_ADR        0x0E000000
+#define GAMEPAK_SRAM_MEMORY     ((u8*)GAMEPAK_SRAM_ADR)
+
 struct TILE8{
     u32 data[16];
 };

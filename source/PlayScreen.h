@@ -10,6 +10,9 @@
 #include "TextSystem.h"
 #include "Cup.h"
 
+#define MAX_SCORE 999999999
+#define MAX_BET   999999
+
 #define SHUFFLE_MODE_MASK   0x80
 #define SHUFFLE_LAYER_MASK  0x40
 #define SHUFFLE_CUP2_MASK   0x38
@@ -51,7 +54,7 @@ class PlayScreen : public Screen{
         u32 ballPos; /// Index of what cup the ball is
 
         int curSelectPos;
-        int cupSelected;
+        u32 cupSelected;
 
         u32 coins;
         u32 highscore;
@@ -81,6 +84,7 @@ class PlayScreen : public Screen{
         void updateCHB(); ///update Coins, High score and Bet values on screen
 
         void changeBet(int amount); ///Change the current bet by "amount" coins
+        void setMinimumBet();
 
         void updateMultiplier(); ///Update the number of cups visible and the value of the multiplier onScreen
 

@@ -15,7 +15,7 @@
 
 PlayScreen::PlayScreen()
     :Screen(ScreenType::PLAY_SCREEN),scrState(PlayScreenState::PLAYING),playState(PlayState::BET)
-    ,cupsMoveFlags(0),showBall(0),cupSelected(2),coins(1000),highscore(200000),multiplier(2),bet(1),minimumBet(1),level(1),pOpSelected(0){
+    ,cupsMoveFlags(0),showBall(0),cupSelected(2),coins(10),highscore(100000),multiplier(2),bet(1),minimumBet(1),level(1),winnedCoins(0),pOpSelected(0){
 
     srand(REG_VCOUNT);
 
@@ -73,7 +73,8 @@ PlayScreen::PlayScreen()
 
     inputManager->setKeyRepeat(KeyIndex::KEY_UP,30);
     inputManager->setKeyRepeat(KeyIndex::KEY_DOWN,30);
-
+    inputManager->setKeyRepeat(KeyIndex::KEY_RIGHT,30);
+    inputManager->setKeyRepeat(KeyIndex::KEY_LEFT,30);
     updateCHB();
 
     oamManager->copyBuffer(NUM_SPRITES);
@@ -118,6 +119,14 @@ void PlayScreen::update(){
                     addBet++;
                 if(inputManager->keyWentDown(KEY_DOWN) || inputManager->keyRepeated(KeyIndex::KEY_DOWN))
                     addBet--;
+                if(inputManager->keyWentDown(KEY_RIGHT))
+                    addBet+=100;
+                else if(inputManager->keyRepeated(KeyIndex::KEY_RIGHT))
+                    addBet+=1000;
+                if(inputManager->keyWentDown(KEY_LEFT))
+                    addBet-=100;
+                else if(inputManager->keyRepeated(KeyIndex::KEY_LEFT))
+                    addBet-=1000;
                 if(inputManager->keyWentDown(KEY_A)){
                     playState = PlayState::SHUFFLE;
                     updateMultiplier();
@@ -227,22 +236,43 @@ void PlayScreen::update(){
                         updateCupsShuffle();
                         return;
                     case 4:
+                        for(int i = 0; i<5; i++){
+                            cups[i]->translate(30+i*36,62);
+                        }
+                        showBall = 5;
                         if(ballPos != cupSelected){
-                            if(coins == 0)
+                            textLayer->puts(12,10,"You lose");
+
+                            if(coins == 0){
                                 scrState = PlayScreenState::GAMEOVER;
+                                textLayer->puts(12,12,"GAMEOVER");
+                                return;
+                            }
                             bet = 1;
                             coins --;
                         }else{
+                            textLayer->puts(12,10,"You WIN");
+
                             coins += bet*multiplier;
+                            if(coins > MAX_SCORE) coins = MAX_SCORE;
+                            winnedCoins += bet*multiplier;
+                            if(winnedCoins > MAX_SCORE) winnedCoins = MAX_SCORE;
+                            level = (winnedCoins /5000) + 1;
+                            if(level > 20) level = 20;
                             if(coins > highscore)
                                 highscore = coins;
-                            bet = 1;
-                            coins --;
+                            bet = 0;
+                            setMinimumBet();
+                            changeBet(minimumBet);
                         }
-                        winnedCoins += bet*multiplier;
-                        level = (winnedCoins /200) + 1;
-                        if(level > 20) level = 20;
-                        playState = PlayState::BET;
+                        updateCHB();
+                        BF_SET(ballAttr->attr0,2,ATTR0_MODE);
+                        return;
+                    case 5:
+                        if(inputManager->keyWentDown(KEY_A)){
+                            textLayer->clean(12,10,8);
+                            playState = PlayState::BET;
+                        }
                         return;
                 };
                 break;
@@ -267,7 +297,7 @@ void PlayScreen::update(){
 
         oamManager->copyBuffer(NUM_SPRITES);
     }else{ ///Gameover state
-        if(inputManager->keyWentDown(KEY_START))
+        if(inputManager->keyWentDown(KEY_A))
            ScreenManager::getInstance()->setScreen(ScreenType::START_SCREEN);
     }
 }
@@ -281,14 +311,19 @@ void PlayScreen::updateCHB(){
 
 void PlayScreen::changeBet(int amount){
     u32 value = (amount < 0)? amount*-1 : amount;
-    if(amount > 0 && value <= coins){
+    if(amount > 0){
+        value = std::min(value,std::min(coins,MAX_BET-bet));
         coins -= value;
         bet += value;
-    }else if(amount <0 && value <= bet){
-        if((bet-value) < minimumBet) return;
+    }else if(amount <0){
+        value = std::min(value,bet-minimumBet);
         coins += value;
         bet -= value;
     }
+}
+
+void PlayScreen::setMinimumBet(){
+    minimumBet = std::max(u32(1),coins/1000);
 }
 
 void PlayScreen::updateMultiplier(){
@@ -390,17 +425,17 @@ void PlayScreen::generateRandomShuffles(){
     actShuffle = 0;
 }
 
- void PlayScreen::swapCups(int c1,int c2,int mode){
+void PlayScreen::swapCups(int c1,int c2,int mode){
     cupsMoveFlags |= (1<<c1);
 
-    cups[c1]->moveTo(cups[c2]->getXPos(),cups[c2]->getYPos(),0,level);
+    cups[c1]->moveTo(cups[c2]->getXPos(),cups[c2]->getYPos(),0,level/2 + 1);
     if(mode == 0){
-        cups[c2]->moveTo(cups[c1]->getXPos(),cups[c1]->getYPos(),0,level);
+        cups[c2]->moveTo(cups[c1]->getXPos(),cups[c1]->getYPos(),0,level/2 + 1);
         cupsMoveFlags |=  (1<<c2);
     }
- }
+}
 
- void PlayScreen::updateCupsShuffle(){
+void PlayScreen::updateCupsShuffle(){
     for(int i = 0; i<5; i++){
         cups[i]->update();
         if(!cups[i]->isMoving())
@@ -410,20 +445,20 @@ void PlayScreen::generateRandomShuffles(){
     oamManager->copyBuffer(NUM_SPRITES);
  }
 
- void PlayScreen::updateSelectionCursor(){
+void PlayScreen::updateSelectionCursor(){
     if(curSelectPos <=0)
-        curSelectPos = (curSelectPos >2)? 0:1;
+        curSelectPos = (multiplier >2)? 0:1;
     if(curSelectPos >= 4)
-        curSelectPos = (curSelectPos == 4)? 4:3;
+        curSelectPos = (multiplier == 4)? 4:3;
 
     BF_SET(cursorSelectAttr->attr1,36+curSelectPos*36,ATTR1_XPOS);
     for(int i =0 ; i<5;i++){
-        if(cups[i]->getXPos() == 30+curSelectPos*36){
+        if(cups[i]->getXPos() == (u32)(30+curSelectPos*36)){
             cupSelected = i;
             return;
         }
     }
- }
+}
 
 ///Tonc font
 u32 PlayScreen::toncfontTiles[192] = {0x00000000, 0x00000000, 0x18181818, 0x00180018, 0x00003636, 0x00000000, 0x367F3636, 0x0036367F,
