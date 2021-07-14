@@ -7,6 +7,8 @@
 
 #include "ScreenManager.h"
 
+#include "MathFuntions.h"
+
 ///Sprites
 #include "SprCup.h"
 #include "SprBall.h"
@@ -15,7 +17,7 @@
 
 PlayScreen::PlayScreen()
     :Screen(ScreenType::PLAY_SCREEN),scrState(PlayScreenState::PLAYING),playState(PlayState::BET)
-    ,cupsMoveFlags(0),showBall(0),cupSelected(2),coins(10),highscore(100000),multiplier(2),bet(1),minimumBet(1),level(1),winnedCoins(0),pOpSelected(0){
+    ,cupsMoveFlags(0),showBall(0),cupSelected(2),coins(10),highscore(100000),multiplier(2),bet(1),minimumBet(1),level(1),pOpSelected(0){
 
     srand(REG_VCOUNT);
 
@@ -167,8 +169,9 @@ void PlayScreen::update(){
                 }
 
                 if(!cupsMoveFlags){
-                    if(actShuffle >= shuffles){
+                    if(actShuffle >= shuffles){ ///ALL the shuffles are finished
                         playState = PlayState::SELECTION;
+                        curSelectPos = 2;
                         BF_SET(cursorSelectAttr->attr0,0,ATTR0_MODE);
                     }
 
@@ -196,7 +199,10 @@ void PlayScreen::update(){
                     curSelectPos++;
                 updateSelectionCursor();
                 if(inputManager->keyWentDown(KEY_A)){
+                    ///Hide the cursor
                     BF_SET(cursorSelectAttr->attr0,2,ATTR0_MODE);
+
+                    ///Change to PRIZE state
                     playState = PlayState::PRIZE;
                     BF_SET(ballAttr->attr0,0,ATTR0_MODE);
                     BF_SET(ballAttr->attr1,cups[ballPos]->getXPos()+8,ATTR1_XPOS);
@@ -248,23 +254,17 @@ void PlayScreen::update(){
                                 textLayer->puts(12,12,"GAMEOVER");
                                 return;
                             }
-                            bet = 1;
-                            coins --;
                         }else{
                             textLayer->puts(12,10,"You WIN");
 
                             coins += bet*multiplier;
                             if(coins > MAX_SCORE) coins = MAX_SCORE;
-                            winnedCoins += bet*multiplier;
-                            if(winnedCoins > MAX_SCORE) winnedCoins = MAX_SCORE;
-                            level = (winnedCoins /5000) + 1;
-                            if(level > 20) level = 20;
                             if(coins > highscore)
                                 highscore = coins;
-                            bet = 0;
-                            setMinimumBet();
-                            changeBet(minimumBet);
                         }
+                        bet = 0;
+                        setMinimumBetAndLevel();
+                        changeBet(minimumBet);
                         updateCHB();
                         BF_SET(ballAttr->attr0,2,ATTR0_MODE);
                         return;
@@ -282,7 +282,7 @@ void PlayScreen::update(){
             pOpSelected = 0;
         if(inputManager->keyWentDown(KEY_DOWN))
             pOpSelected = 1;
-        if(inputManager->keyWentDown(KEY_START)){
+        if(inputManager->keyWentDown(KEY_A)){
             if(pOpSelected)
                 ScreenManager::getInstance()->setScreen(ScreenType::START_SCREEN);
 
@@ -322,8 +322,9 @@ void PlayScreen::changeBet(int amount){
     }
 }
 
-void PlayScreen::setMinimumBet(){
-    minimumBet = std::max(u32(1),coins/1000);
+void PlayScreen::setMinimumBetAndLevel(){
+    level = ((Math::logBase2(coins) + 1) / 2) +1;
+    minimumBet = Math::pow(10,(Math::logBase2(coins)+1)/5);
 }
 
 void PlayScreen::updateMultiplier(){
@@ -362,7 +363,7 @@ int PlayScreen::getRandomCup(){
 
 void PlayScreen::generateRandomShuffles(){
     shuffles = 0;
-    u32 numShuffleLayers = (level+15)/4,typeLayer;
+    u32 numShuffleLayers = (level+3)/4,typeLayer;
     u32 layer = 0;
     int cup1,cup2,cup3,cup4,cup5;
 
@@ -428,9 +429,9 @@ void PlayScreen::generateRandomShuffles(){
 void PlayScreen::swapCups(int c1,int c2,int mode){
     cupsMoveFlags |= (1<<c1);
 
-    cups[c1]->moveTo(cups[c2]->getXPos(),cups[c2]->getYPos(),0,level/2 + 1);
+    cups[c1]->moveTo(cups[c2]->getXPos(),cups[c2]->getYPos(),3,level);
     if(mode == 0){
-        cups[c2]->moveTo(cups[c1]->getXPos(),cups[c1]->getYPos(),0,level/2 + 1);
+        cups[c2]->moveTo(cups[c1]->getXPos(),cups[c1]->getYPos(),3,level);
         cupsMoveFlags |=  (1<<c2);
     }
 }

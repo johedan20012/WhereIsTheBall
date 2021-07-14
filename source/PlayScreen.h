@@ -62,7 +62,6 @@ class PlayScreen : public Screen{
         u32 bet;
         u32 minimumBet;
         u32 level;
-        u32 winnedCoins;
 
         int addBet;
 
@@ -84,7 +83,7 @@ class PlayScreen : public Screen{
         void updateCHB(); ///update Coins, High score and Bet values on screen
 
         void changeBet(int amount); ///Change the current bet by "amount" coins
-        void setMinimumBet();
+        void setMinimumBetAndLevel();
 
         void updateMultiplier(); ///Update the number of cups visible and the value of the multiplier onScreen
 

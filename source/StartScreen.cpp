@@ -51,7 +51,7 @@ void StartScreen::update(){
     if(inputManager->keyWentDown(KEY_UP)){
         optionSelected = 0;
     }
-    if(inputManager->keyWentDown(KEY_START)){
+    if(inputManager->keyWentDown(KEY_A)){
         ScreenManager::getInstance()->setScreen((ScreenType)(optionSelected+1));
     }
 
