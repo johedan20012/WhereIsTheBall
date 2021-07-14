@@ -37,7 +37,7 @@ StartScreen::StartScreen()
     ///Set sprite attributes
     cursorAttr = oamManager->getAttrPtr(0);
 
-    cursorAttr->attr0 = ATTR0_YPOS(62) | ATTR0_REG | ATTR0_8BPP | ATTR0_SQUARE;
+    cursorAttr->attr0 = ATTR0_YPOS(63) | ATTR0_REG | ATTR0_8BPP | ATTR0_SQUARE;
     cursorAttr->attr1 = ATTR1_XPOS(81) | ATTR1_SIZE(1);
     cursorAttr->attr2 = ATTR2_BASE_TILE(0) | ATTR2_PRIORITY(0);
 
@@ -45,18 +45,18 @@ StartScreen::StartScreen()
 }
 
 void StartScreen::update(){
-    if(inputManager->keyWentDown(KEY_DOWN)){
-        optionSelected = 1;
-    }
-    if(inputManager->keyWentDown(KEY_UP)){
-        optionSelected = 0;
-    }
+    if(inputManager->keyWentDown(KEY_DOWN))
+        optionSelected ++;
+    if(inputManager->keyWentDown(KEY_UP))
+        optionSelected --;
+    optionSelected = (optionSelected <1)? 1 : ((optionSelected > 3)? 3 : optionSelected);
+
     if(inputManager->keyWentDown(KEY_A)){
-        ScreenManager::getInstance()->setScreen((ScreenType)(optionSelected+1));
+        ScreenManager::getInstance()->setScreen((ScreenType)optionSelected);
     }
 
     cursorAttr->attr0 &= ~ATTR0_YPOS_MASK;
-    cursorAttr->attr0 |= ATTR0_YPOS(62+optionSelected*34);
+    cursorAttr->attr0 |= ATTR0_YPOS(38+optionSelected*25);
 
     oamManager->copyBuffer(1);
 }

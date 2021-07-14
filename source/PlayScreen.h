@@ -33,8 +33,6 @@ enum class PlayScreenState{
 
 class PlayScreen : public Screen{
     private:
-        static u32 toncfontTiles[192];
-
         static const int NUM_SPRITES = 8;
 
         PlayScreenState scrState;
