@@ -8,6 +8,7 @@
 #include "ScreenManager.h"
 
 #include "MathFuntions.h"
+#include "Save.h"
 
 ///Sprites
 #include "SprCup.h"
@@ -21,6 +22,8 @@
 PlayScreen::PlayScreen()
     :Screen(ScreenType::PLAY_SCREEN),scrState(PlayScreenState::PLAYING),playState(PlayState::BET)
     ,cupsMoveFlags(0),showBall(0),cupSelected(2),coins(10),highscore(100000),multiplier(2),bet(1),minimumBet(1),level(1),pOpSelected(0){
+
+    Save::readHighscore(&highscore);
 
     srand(REG_VCOUNT);
 
@@ -47,7 +50,7 @@ PlayScreen::PlayScreen()
 
     ///Set cups sprite attributes
     for(u32 i = 0; i<5; i++){
-        cups[i] = new Cup(oamManager->getAttrPtr(i),30+i*36,62,((i>0 && i<4)? ATTR0_REG:ATTR0_HIDE));
+        cups[i] = new Cup(oamManager->getAttrPtr(i),10+i*47,62,((i>0 && i<4)? ATTR0_REG:ATTR0_HIDE));
     }
 
     ///Set ball sprite attributes
@@ -248,7 +251,7 @@ void PlayScreen::update(){
                         return;
                     case 4:
                         for(int i = 0; i<5; i++){
-                            cups[i]->translate(30+i*36,62);
+                            cups[i]->translate(10+i*47,62);
                         }
                         showBall = 5;
                         if(ballPos != cupSelected){
@@ -266,6 +269,7 @@ void PlayScreen::update(){
                             if(coins > MAX_SCORE) coins = MAX_SCORE;
                             if(coins > highscore)
                                 highscore = coins;
+                            Save::saveHighScore(highscore);
                         }
                         bet = 0;
                         setMinimumBetAndLevel();
@@ -328,7 +332,7 @@ void PlayScreen::changeBet(int amount){
 }
 
 void PlayScreen::setMinimumBetAndLevel(){
-    level = ((Math::logBase2(coins) + 1) / 2) +1;
+    level = Math::logBase2(coins)  +1;
     minimumBet = Math::pow(10,(Math::logBase2(coins)+1)/5);
 }
 
@@ -457,9 +461,9 @@ void PlayScreen::updateSelectionCursor(){
     if(curSelectPos >= 4)
         curSelectPos = (multiplier == 4)? 4:3;
 
-    BF_SET(cursorSelectAttr->attr1,36+curSelectPos*36,ATTR1_XPOS);
+    BF_SET(cursorSelectAttr->attr1,16+curSelectPos*47,ATTR1_XPOS);
     for(int i =0 ; i<5;i++){
-        if(cups[i]->getXPos() == (u32)(30+curSelectPos*36)){
+        if(cups[i]->getXPos() == (u32)(10+curSelectPos*47)){
             cupSelected = i;
             return;
         }
