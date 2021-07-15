@@ -3,6 +3,7 @@
 #include "PlayScreen.h"
 #include "StartScreen.h"
 #include "ControlsScreen.h"
+#include "CreditsScreen.h"
 
 ScreenManager* ScreenManager::instance = nullptr;
 
@@ -36,10 +37,11 @@ void ScreenManager::update(){
             case ScreenType::PLAY_SCREEN:
                 currentScreen = new PlayScreen();
                 break;
-            default:
             case ScreenType::CONTROLS_SCREEN:
                 currentScreen = new ControlsScreen();
                 break;
+            case ScreenType::CREDITS_SCREEN:
+                currentScreen = new CreditsScreen();
         };
     }
     currentScreen->update();

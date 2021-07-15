@@ -5,6 +5,7 @@ enum class ScreenType{
     START_SCREEN = 0,
     PLAY_SCREEN,
     CONTROLS_SCREEN,
+    CREDITS_SCREEN,
 };
 
 class Screen{
