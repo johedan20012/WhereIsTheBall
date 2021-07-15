@@ -16,6 +16,7 @@ class StartScreen : public Screen{
         OBJ_ATTR* cursorAttr;
     public:
         StartScreen();
+        ~StartScreen() override;
 
         void update() override;
 };

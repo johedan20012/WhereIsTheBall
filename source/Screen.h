@@ -3,7 +3,8 @@
 
 enum class ScreenType{
     START_SCREEN = 0,
-    PLAY_SCREEN
+    PLAY_SCREEN,
+    CONTROLS_SCREEN,
 };
 
 class Screen{

@@ -98,6 +98,8 @@ PlayScreen::~PlayScreen(){
 
     inputManager->setKeyRepeat(KeyIndex::KEY_UP,0);
     inputManager->setKeyRepeat(KeyIndex::KEY_DOWN,0);
+    inputManager->setKeyRepeat(KeyIndex::KEY_RIGHT,0);
+    inputManager->setKeyRepeat(KeyIndex::KEY_LEFT,0);
 
     delete textLayer;
     textLayer = nullptr;

@@ -14,6 +14,7 @@
 #define ATTR0_4BPP   0x0000
 #define ATTR0_8BPP   0x2000
 #define ATTR0_SQUARE 0x0000
+#define ATTR0_WIDE   0X4000
 #define ATTR0_TALL   0x8000
 
 ///Defines for attribute one

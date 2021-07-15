@@ -2,11 +2,12 @@
 
 #include "PlayScreen.h"
 #include "StartScreen.h"
+#include "ControlsScreen.h"
 
 ScreenManager* ScreenManager::instance = nullptr;
 
 ScreenManager::ScreenManager()
-    :currentScreen(new StartScreen()){}
+    :currentScreen(new StartScreen()),changeScreen(false){}
 
 ScreenManager::~ScreenManager(){}
 
@@ -25,14 +26,26 @@ void ScreenManager::release(){
 }
 
 void ScreenManager::update(){
+    if(changeScreen){
+        changeScreen = false;
+        delete currentScreen;
+        switch(nextScreen){
+            case ScreenType::START_SCREEN:
+                currentScreen = new StartScreen();
+                break;
+            case ScreenType::PLAY_SCREEN:
+                currentScreen = new PlayScreen();
+                break;
+            default:
+            case ScreenType::CONTROLS_SCREEN:
+                currentScreen = new ControlsScreen();
+                break;
+        };
+    }
     currentScreen->update();
 }
 
 void ScreenManager::setScreen(ScreenType screenType){
-    delete currentScreen;
-    if(screenType == ScreenType::START_SCREEN){
-        currentScreen = new StartScreen();
-        return;
-    }
-    currentScreen = new PlayScreen();
+    nextScreen = screenType;
+    changeScreen = true;
 }

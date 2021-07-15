@@ -8,6 +8,8 @@ class ScreenManager{
         static ScreenManager* instance;
 
         Screen* currentScreen;
+        ScreenType nextScreen;
+        bool changeScreen;
 
         ScreenManager();
         ~ScreenManager();

@@ -14,7 +14,7 @@
 StartScreen::StartScreen()
     : Screen(ScreenType::START_SCREEN), optionSelected(0){
 
-    REG_DISPCNT ^= BG2_ON;
+    REG_DISPCNT &= ~BG2_ON;
     REG_DISPCNT |= BG1_ON;
 
     REG_BG1CNT = BG_PRIORITY(0) | CHAR_BASE(2) | BG_16_COLOR | SCREEN_BASE(1) | BG_SIZE_0;
@@ -44,6 +44,11 @@ StartScreen::StartScreen()
     oamManager->copyBuffer(1);
 }
 
+StartScreen::~StartScreen(){
+    cursorAttr->attr0 = ATTR0_HIDE;
+    oamManager->copyBuffer(1);
+}
+
 void StartScreen::update(){
     if(inputManager->keyWentDown(KEY_DOWN))
         optionSelected ++;
@@ -55,8 +60,7 @@ void StartScreen::update(){
         ScreenManager::getInstance()->setScreen((ScreenType)optionSelected);
     }
 
-    cursorAttr->attr0 &= ~ATTR0_YPOS_MASK;
-    cursorAttr->attr0 |= ATTR0_YPOS(38+optionSelected*25);
+    BF_SET(cursorAttr->attr0,38+optionSelected*25,ATTR0_YPOS);
 
     oamManager->copyBuffer(1);
 }
